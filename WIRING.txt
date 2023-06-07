@@ -1,0 +1,6 @@
+wiring
+input 1 -> A1
+input 2 -> A2
+out 1   -> 6
+out 2   -> 8
+button  -> 9
