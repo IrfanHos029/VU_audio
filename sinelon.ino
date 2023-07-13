@@ -20,3 +20,16 @@
   
   FastLED.show();
 }*/
+
+void sinelon()
+{
+  // a colored dot sweeping back and forth, with fading trails
+  fadeToBlackBy( ledsLeft, N_PIXELS, 20);
+  int pos = beatsin16( 13, 0, N_PIXELS-1 );
+  ledsLeft[pos] += CHSV( gHue, 255, 192);
+  ledsRight[pos] += CHSV( gHue, 255, 192);//1
+
+  FastLED.show();  
+  FastLED.delay(1000/FRAMES_PER_SECOND); 
+  EVERY_N_MILLISECONDS( 20 ) { gHue++; }
+}

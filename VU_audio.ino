@@ -54,6 +54,9 @@
     CRGBPalette16 currentPalette(OceanColors_p);
     CRGBPalette16 targetPalette(CloudColors_p);
 
+uint8_t gHue = 0;
+#define FRAMES_PER_SECOND  120
+
 
 //new ripple vu
 uint8_t timeval = 20;                                                           // Currently 'delay' value. No, I don't use delays, I use EVERY_N_MILLIS_I instead.

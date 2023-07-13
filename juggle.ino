@@ -21,3 +21,20 @@ void juggle() { // Several colored dots, weaving in and out of sync with each ot
 
   FastLED.show();
 }*/
+
+void jugglee() {
+  // eight colored dots, weaving in and out of sync with each other
+  fadeToBlackBy( ledsLeft, N_PIXELS, 20);
+  fadeToBlackBy( ledsRight, N_PIXELS, 20);
+  uint8_t dothue = 0;
+  for( int i = 0; i < 8; i++) {
+    ledsLeft[beatsin16( i+7, 0, N_PIXELS-1 )] |= CHSV(dothue, 200, 255);
+    ledsRight[beatsin16( i+7, 0, N_PIXELS-1 )] |= CHSV(dothue, 200, 255);//1
+    dothue += 32;
+  }
+
+  FastLED.show();  
+  FastLED.delay(1000/FRAMES_PER_SECOND); 
+  EVERY_N_MILLISECONDS( 20 ) { gHue++; }
+
+}
