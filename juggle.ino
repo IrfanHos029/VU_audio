@@ -22,7 +22,7 @@ void juggle() { // Several colored dots, weaving in and out of sync with each ot
   FastLED.show();
 }*/
 
-void jugglee() {
+void juggle() {
   // eight colored dots, weaving in and out of sync with each other
   fadeToBlackBy( ledsLeft, N_PIXELS, 20);
   fadeToBlackBy( ledsRight, N_PIXELS, 20);

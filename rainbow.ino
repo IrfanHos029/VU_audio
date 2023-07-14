@@ -24,3 +24,11 @@ void rainbow()
  // FastLED.delay(1000/FRAMES_PER_SECOND); 
   EVERY_N_MILLISECONDS( 20 ) { gHue++; }
 }
+
+void rainbowWithGlitter() 
+{
+  // built-in FastLED rainbow, plus some random sparkly glitter
+  //FastLED.setBrightness(BRIGHTNESS);
+  rainbow();
+  addGlitterr(80);
+}

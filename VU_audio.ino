@@ -3,22 +3,22 @@
     #include <FastLED.h>
     #include <math.h>
     #include <SoftwareSerial.h>
-    #define N_PIXELS  17  // Number of pixels in strand
-    #define N_PIXELS_2  17  // Number of pixels in strand
-    #define N_PIXELS_HALF (N_PIXELS/2)
-    #define MIC_PIN   A1  // Microphone is attached to this analog pin
-    #define MIC_PIN_2   A2  // Microphone is attached to this analog pin
+    #define N_PIXELS    15  // Number of pixels in strand
+    #define N_PIXELS_2  15  // Number of pixels in strand
+    int     N_PIXELS_HALF = N_PIXELS/2;
+    #define MIC_PIN     A0  // Microphone is attached to this analog pin
+    #define MIC_PIN_2   A3  // Microphone is attached to this analog pin
     #define LED_PIN    6  // NeoPixel LED strand is connected to this pin
     #define LED_PIN_2  8  // NeoPixel LED strand is connected to this pin
-    #define SAMPLE_WINDOW   10  // Sample window for average level
-    #define SAMPLE_WINDOW_2   10  // Sample window for average level
+    #define SAMPLE_WINDOW   30  // Sample window for average level
+    #define SAMPLE_WINDOW_2   30  // Sample window for average level
     #define PEAK_HANG 25 //Time of pause before peak dot falls
-    #define PEAK_FALL 20 //Rate of falling peak dot
-    #define PEAK_FALL2 8 //Rate of falling peak dot
+    #define PEAK_FALL 30 //Rate of falling peak dot
+    #define PEAK_FALL2 30 //Rate of falling peak dot
     #define INPUT_FLOOR 10 //Lower range of analogRead input
     #define INPUT_CEILING 300 //Max range of analogRead input, the lower the value the more sensitive (1023 = max)300 (150)
     #define DC_OFFSET  0  // DC offset in mic signal - if unusure, leave 0
-    #define NOISE     10  // Noise/hum/interference in mic signal
+    #define NOISE     50  // Noise/hum/interference in mic signal
     #define SAMPLES   64  // Length of buffer for dynamic level adjustment
     #define SAMPLES2   64  // Length of buffer for dynamic level adjustment
     #define TOP       (N_PIXELS + 2) // Allow dot to go slightly off scale
@@ -32,7 +32,7 @@
     #if FASTLED_VERSION < 3001000
     #error "Requires FastLED 3.1 or later; check github for latest code."
     #endif
-    #define BRIGHTNESS  255
+    #define BRIGHTNESS  200
     #define LED_TYPE    WS2812B     // Only use the LED_PIN for WS2812's
     #define COLOR_ORDER GRB
     #define COLOR_MIN           0
@@ -193,7 +193,7 @@ uint32_t nextBg = currentBg;
 TBlendType    currentBlending;  
      
 const int buttonPin = 9;     // the number of the pushbutton pin 
-int buttonPushCounter = 0;   // counter for the number of button presses
+int buttonPushCounter = 1;   // counter for the number of button presses
 int buttonState = 0;         // current state of the button
 int lastButtonState = 0;
 
@@ -215,7 +215,7 @@ void setup() {
   //initialize the buttonPin as output
    digitalWrite(buttonPin, HIGH); 
      
-      // Serial.begin(9600);
+       Serial.begin(9600);
       strip.begin();
       strip.show(); // all pixels to 'off'
 
@@ -312,10 +312,10 @@ float fscale( float originalMin, float originalMax, float newBegin, float newEnd
       // if the current state is HIGH then the button
       // wend from off to on:
       buttonPushCounter++;
-      Serial.println("on");
       Serial.print("number of button pushes:  ");
       Serial.println(buttonPushCounter);
-      if(buttonPushCounter==9) {
+      Serial.println("on");
+      if(buttonPushCounter>9) {
       buttonPushCounter=1;}
     } 
     else {
@@ -331,53 +331,70 @@ float fscale( float originalMin, float originalMax, float newBegin, float newEnd
 
 switch (buttonPushCounter){
 
-    case 1:
-     buttonPushCounter==1; {     
-//   All(); // NORMAL
-     vu7(); // NORMAL
-//     vu15(false, 1); // NORMAL
-      break;}     
- 
-      case 2:
-     buttonPushCounter==2; {     
-     vu(); // NORMAL
-      break;}     
+    case 1:  
+        vu(); // NORMAL
+    break; 
        
-     case 3:
-     buttonPushCounter==3; {
-       vu1(); // Normal Centre out
-      break;}
+    case 2:
+         vu1(); // Normal Centre out
+    break;
       
+    case 3:
+         vu2(); // Normal Centre out
+    break;
+
+    case 4:
+         sinelon; // shooting star
+    break;
+    
+    case 5:
+         juggle(); // shooting star
+    break;
+    
+    case 6:
+         balls(); // shooting star
+    break;
+
+    case 7:
+         rainbowWithGlitter(); // blue red and green dots
+    break;
+
+    case 8:
+          bpm(); //  red centre blue dots
+    break; 
+
+    case 9:
+          juggle(); // dots
+    break;
+   
+/*
    case 4:
-     buttonPushCounter==4; {
     vu3(); // Rainbow Normal
-      break;}
+      break;
          
     case 5:
-     buttonPushCounter==5; {
     Vu4(); // Centre rainbow
-      break;}  
+      break;
 
       case 6:
-     buttonPushCounter==6; {
+    
     vu2(); // blue red and green dots
-      break;} 
+      break;
 
-       case 7:
-     buttonPushCounter==7; {
+       case 7:  
     vu10(); //  red centre blue dots
-      break;} 
+      break;
 
-         case 8:
-     buttonPushCounter==8; {
+         case 8:   
     Vu6(); // dots
-      break;} 
+      break;
 
-          case 9:
-     buttonPushCounter==9; {
+          case 9: 
     vu5(); // shooting star
-      break;} 
-/*
+      break;
+
+
+
             case 10:
      buttonPushCounter==10; {
     vu7(); // ripple with bg
@@ -484,6 +501,7 @@ void vu() {
   n   = analogRead(MIC_PIN);                        // Raw reading from mic 
   n   = abs(n - 512 - DC_OFFSET); // Center on zero
   n   = (n <= NOISE) ? 0 : (n - NOISE);             // Remove noise/hum
+  //Serial.println(String() + "Kiri:" + n);
   lvlLeft = ((lvlLeft * 7) + n) >> 3;    // "Dampened" reading (else looks twitchy)
  
   // Calculate bar height based on dynamic min/max levels (fixed point):
@@ -496,12 +514,14 @@ void vu() {
  
   // Color pixels based on rainbow gradient
   for(i=0; i<N_PIXELS; i++) {
+    
     if(i >= height)               strip.setPixelColor(i,   0,   0, 0);
     else strip.setPixelColor(i,Wheel(map(i,0,strip.numPixels()-1,30,150)));
     
   }
+ //  strip.show(); // Update strip
    // Draw peak dot  
-  if(peakLeft > 0 && peakLeft <= N_PIXELS-1) strip.setPixelColor(peakLeft,Wheel(map(peakLeft,0,strip.numPixels()-1,30,150)));
+  if(peakLeft >= 0 && peakLeft <= N_PIXELS-1) strip.setPixelColor(peakLeft,255,0,0);
   
    strip.show(); // Update strip
  
@@ -535,6 +555,7 @@ void vu() {
   n   = analogRead(MIC_PIN_2);                        // Raw reading from mic 
   n   = abs(n - 512 - DC_OFFSET); // Center on zero
   n   = (n <= NOISE) ? 0 : (n - NOISE);             // Remove noise/hum
+  //Serial.println(String() + "kanan:" + n);
   lvlRight = ((lvlRight * 7) + n) >> 3;    // "Dampened" reading (else looks twitchy)
  
   // Calculate bar height based on dynamic min/max levels (fixed point):
@@ -547,12 +568,14 @@ void vu() {
  
   // Color pixels based on rainbow gradient
   for(i=0; i<N_PIXELS; i++) {
+   
     if(i >= height)               strip1.setPixelColor(i,   0,   0, 0);
     else strip1.setPixelColor(i,Wheel(map(i,0,strip1.numPixels()-1,30,150)));
     
   }
+  // strip1.show(); // Update strip
   // Draw peak dot  
-  if(peakRight > 0 && peakRight <= N_PIXELS-1) strip1.setPixelColor(peakRight,Wheel(map(peakRight,0,strip1.numPixels()-1,30,150)));
+  if(peakRight >= 0 && peakRight <= N_PIXELS-1) strip1.setPixelColor(peakRight,0,0,255);
   
    strip1.show(); // Update strip
  
@@ -622,22 +645,22 @@ void vu1() {
   // Color pixels based on rainbow gradient
   for(i=0; i<N_PIXELS_HALF; i++) {
     if(i >= height) {              
-      strip.setPixelColor(N_PIXELS_HALF-i-1,   0,   0, 0);
+      strip.setPixelColor(N_PIXELS_HALF-i,   0,   0, 0);
       strip.setPixelColor(N_PIXELS_HALF+i,   0,   0, 0);
     }
     else {
       uint32_t color = Wheel(map(i,0,N_PIXELS_HALF-1,30,150));
-      strip.setPixelColor(N_PIXELS_HALF-i-1,color);
+      strip.setPixelColor(N_PIXELS_HALF-i,color);
       strip.setPixelColor(N_PIXELS_HALF+i,color);
    }
     
   } 
  
 // Draw peak dot  
-  if(peakLeft > 0 && peakLeft <= N_PIXELS_HALF-1) {
+  if(peakLeft >= 0 && peakLeft <= N_PIXELS_HALF) {
     uint32_t color = Wheel(map(peak,0,N_PIXELS_HALF-1,30,150));
-    strip.setPixelColor(N_PIXELS_HALF-peakLeft-1,color);
-    strip.setPixelColor(N_PIXELS_HALF+peakLeft,color);
+    strip.setPixelColor(N_PIXELS_HALF-peakLeft,200,0,0);
+    strip.setPixelColor(N_PIXELS_HALF+peakLeft,200,0,0);
   }
   
    strip.show(); // Update strip
@@ -650,10 +673,10 @@ void vu1() {
       dotCountLeft = 0;
     }
   // Draw peak dot  
-  if(peakLeft > 0 && peakLeft <= N_PIXELS_HALF-1) {
+  if(peakLeft >= 0 && peakLeft <= N_PIXELS_HALF) {
     uint32_t color = Wheel(map(peakLeft,0,N_PIXELS_HALF-1,30,150));
-    strip.setPixelColor(N_PIXELS_HALF-peakLeft-1,color);
-    strip.setPixelColor(N_PIXELS_HALF+peakLeft,color);
+    strip.setPixelColor(N_PIXELS_HALF-peakLeft,200,0,0);
+    strip.setPixelColor(N_PIXELS_HALF+peakLeft,200,0,0);
   }
   
    strip.show(); // Update strip
@@ -704,22 +727,22 @@ void vu1() {
   // Color pixels based on rainbow gradient
   for(i=0; i<N_PIXELS_HALF; i++) {
     if(i >= height) {              
-      strip1.setPixelColor(N_PIXELS_HALF-i-1,   0,   0, 0);
+      strip1.setPixelColor(N_PIXELS_HALF-i,   0,   0, 0);
       strip1.setPixelColor(N_PIXELS_HALF+i,   0,   0, 0);
     }
     else {
       uint32_t color = Wheel(map(i,0,N_PIXELS_HALF-1,30,150));
-      strip1.setPixelColor(N_PIXELS_HALF-i-1,color);
+      strip1.setPixelColor(N_PIXELS_HALF-i,color);
       strip1.setPixelColor(N_PIXELS_HALF+i,color);
     }
     
   } 
  
 // Draw peak dot  
-  if(peakRight > 0 && peakRight <= N_PIXELS_HALF-1) {
+  if(peakRight > 0 && peakRight <= N_PIXELS_HALF) {
     uint32_t color = Wheel(map(peakRight,0,N_PIXELS_HALF-1,30,150));
-    strip1.setPixelColor(N_PIXELS_HALF-peakRight-1,color);
-    strip1.setPixelColor(N_PIXELS_HALF+peakRight,color);
+    strip1.setPixelColor(N_PIXELS_HALF-peakRight,0,0,200);
+    strip1.setPixelColor(N_PIXELS_HALF+peakRight,0,0,200);
   }
   
    strip1.show(); // Update strip
@@ -732,10 +755,10 @@ void vu1() {
       dotCountRight = 0;
     }
   // Draw peak dot  
-  if(peakRight > 0 && peakRight <= N_PIXELS_HALF-1) {
+  if(peakRight > 0 && peakRight <= N_PIXELS_HALF) {
     uint32_t color = Wheel(map(peakRight,0,N_PIXELS_HALF-1,30,150));
-    strip1.setPixelColor(N_PIXELS_HALF-peakRight-1,color);
-    strip1.setPixelColor(N_PIXELS_HALF+peakRight,color);
+    strip1.setPixelColor(N_PIXELS_HALF-peakRight,0,0,200);
+    strip1.setPixelColor(N_PIXELS_HALF+peakRight,0,0,200);
   }
   
    strip1.show(); // Update strip
